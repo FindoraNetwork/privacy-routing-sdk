@@ -19,7 +19,9 @@ import { ContractContext as Pool } from './types/Pool';
 
 const createContract = (address: string, abi: any, provider?: string) => {
   const { web3 } = Sdk.environment;
-  return new (provider ? new Web3(provider) : web3).eth.Contract(abi as AbiItem[], address);
+  const web3Instance = (provider ? new Web3(provider) : web3);
+  web3Instance.eth.transactionBlockTimeout = 200;
+  return new web3Instance.eth.Contract(abi as AbiItem[], address);
 };
 
 export const erc20 = (address: string, provider?: string) => {

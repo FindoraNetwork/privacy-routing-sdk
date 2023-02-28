@@ -40,12 +40,21 @@ export const fraToBar = async (payload: fraToBarPayloadType): Promise<Transactio
   const findoraTo = fraAddressToHashAddress(recipientAddress);
   let txHash = '';
 
-  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: BigInt(bar2abarFee.toString(10)).toString() });
-  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: BigInt(convertFee.toString(10)).toString() });
+  let gas = 0;
+  const bar2abarFeeValue = BigInt(bar2abarFee.toString(10)).toString();
+  gas = await contract.methods.depositFRA(findoraTo).estimateGas({ from: sendObj.from, value: bar2abarFeeValue });
+  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: bar2abarFeeValue, gas });
+
+  const convertFeeValue = BigInt(convertFee.toString(10)).toString();
+  gas = await contract.methods.depositFRA(findoraTo).estimateGas({ from: sendObj.from, value: convertFeeValue });
+  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: convertFeeValue, gas });
+
+  const amountValue = BigInt(convertAmount.toString(10)).toString();
+  gas = await contract.methods.depositFRA(findoraTo).estimateGas({ from: sendObj.from, value: amountValue });
   return new Promise((resolve, reject) => {
     contract.methods
       .depositFRA(findoraTo)
-      .send({ from: sendObj.from, value: BigInt(convertAmount.toString(10)).toString() })
+      .send({ from: sendObj.from, value: amountValue, gas })
       .once('transactionHash', (hash) => { txHash = hash; })
       .once('receipt', (receipt) => { resolve(receipt); })
       .once('error', (error) => {
@@ -87,12 +96,21 @@ export const frc20ToBar = async (payload: frc20ToBarPayloadType): Promise<Transa
   }
   const findoraTo = fraAddressToHashAddress(recipientAddress);
   let txHash = '';
-  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: BigInt(bar2abarFee.toString(10)).toString() });
-  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: BigInt(convertFee.toString(10)).toString() });
+
+  let gas = 0;
+  const bar2abarFeeValue = BigInt(bar2abarFee.toString(10)).toString();
+  gas = await contract.methods.depositFRA(findoraTo).estimateGas({ from: sendObj.from, value: bar2abarFeeValue });
+  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: bar2abarFeeValue, gas });
+
+  const convertFeeValue = BigInt(convertFee.toString(10)).toString();
+  gas = await contract.methods.depositFRA(findoraTo).estimateGas({ from: sendObj.from, value: convertFeeValue });
+  await contract.methods.depositFRA(findoraTo).send({ from: sendObj.from, value: convertFeeValue, gas });
+
+  gas = await contract.methods.depositFRC20(tokenAddress, findoraTo, amount).estimateGas(sendObj);
   return new Promise((resolve, reject) => {
     contract.methods
       .depositFRC20(tokenAddress, findoraTo, amount)
-      .send(sendObj)
+      .send({ ...sendObj, gas })
       .once('transactionHash', (hash) => { txHash = hash; })
       .once('receipt', (receipt) => { resolve(receipt); })
       .once('error', (error) => {

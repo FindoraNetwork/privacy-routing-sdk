@@ -9,7 +9,9 @@ import PrismBridgeAbi from './abis/PrismBridgeAbi.json';
 import PoolAbi from './abis/PoolAbi.json';
 const createContract = (address, abi, provider) => {
     const { web3 } = Sdk.environment;
-    return new (provider ? new Web3(provider) : web3).eth.Contract(abi, address);
+    const web3Instance = (provider ? new Web3(provider) : web3);
+    web3Instance.eth.transactionBlockTimeout = 200;
+    return new web3Instance.eth.Contract(abi, address);
 };
 export const erc20 = (address, provider) => {
     return createContract(address, Erc20Abi, provider);
